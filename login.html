@@ -1,0 +1,116 @@
+<DOCTYPE html>
+<html ng-app = "app">
+<head>
+	<link rel="stylesheet" type="text/css" href="https://getbootstrap.com/docs/4.5/dist/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.0/angular.min.js"></script>
+    <script>
+        var a = angular.module('app', []);
+        a.controller('userControler',['$scope', '$http', function($scope, $http){
+            $scope.login = function(e, object){
+				
+				var username = document.getElementById("username");
+				var password = document.getElementById("password");
+                $http({method: 'POST',data:{"password": username.value,
+  				"username": password.value}, url: object.link })
+                .then(function successCallback(response) {
+                    $scope.hasil = response.data.data.token;
+					
+					$scope.getData(event, {link :"http://18.141.178.15:8080/checklist", token : $scope.hasil})
+                });
+			};
+            $scope.getData = function(e, object){
+				 $http({method: 'GET', headers : {   
+					"authorization" : 'Bearer '+ object.token
+					}, url: object.link })
+                .then(function successCallback(response) {
+                    $scope.datalist = response.data.data;
+					console.log($scope.datalist);
+                });
+			};
+
+			$scope.add = function(e, object){
+				
+				var name = document.getElementById("name");
+				var check = document.getElementById("check");
+                $http({method: 'POST', headers : {   
+					"authorization" : 'Bearer '+ $scope.hasil
+					},data:{"checklistId": name.value,
+  				"itemname": check.value}, url: object.link })
+                .then(function successCallback(response) {
+                    $scope.hasil = response.data.data.token;
+					
+					$scope.getData(event, {link :"http://18.141.178.15:8080/checklist", token : $scope.hasil})
+                });
+			};
+        }]);
+		
+    
+    </script>
+</head>
+<body ng-controller="userControler">
+<div class="container" id="login" ng-if="!hasil">
+<div class="row">
+	<div class="col-md-4 offset-md-4">
+		<div class="row">
+			<div class="col-md-12 col-sm-12">
+				<h3> Form Login</h3>
+			</div>
+			<div class="col-md-12 col-sm-12">
+			<div class="card">
+				<div class="card-body">
+					<form method="post" name="form-data" enctype="multipart/form-data">
+						<div class="form-group">
+							<input class="form-control" type ="text" id="username">
+						</div>
+						<div class="form-group">
+							<input class="form-control" type ="text" id="password">
+						</div>
+						<div class="form-group text-center">
+							<button class="btn btn-primary" ng-click ="login(event, {link: 'http://18.141.178.15:8080/login'})">Login</button>
+						</div>
+						{{hasil}}
+					</form>
+				</div>
+			</div>
+			</div>
+		</div>
+	</div>
+</div>
+</div>
+
+<div class="container" id="list" ng-if="hasil">
+<br><br>
+<div class="row">
+	<div class="col-md-4 offset-md-4">
+		<div class="form-group row">
+			<label>Name :</label>
+			<input class="form-control" type ="text" id="name">
+		</div>
+		<div class="form-group row">
+			<label>Checklist :</label>
+			<input class="form-control" type ="checkbox" id="check">
+		</div>
+	</div>
+</div>
+<button class="btn btn-primary" ng-click ="add(event, {link: 'http://18.141.178.15:8080/item'})">Add</button>
+<table class="table table-bordered">
+<thead class="thead-dark">
+	<tr>
+		<td>ID</td>
+		<td>Name</td>
+		<td>Items</td>
+		<td>Checklist</td>
+	</tr>
+</thead>
+<tbody>
+	<tr ng-repeat="data in datalist">
+		<td>{{data.id}}</td>
+		<td>{{data.name}}</td>
+		<td>{{data.items}}</td>
+		<td><input type="checkbox" {{data.checklistCompletionStatus?'checked':''}} disable></td>
+	</tr>
+</tbody>
+</table>
+</div>
+</body>
+</html>
